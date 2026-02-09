@@ -148,3 +148,42 @@ impl<A: Parser, B: Parser> Parser for Then<A, B> {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Re {
+    pub(crate) pattern: regex::Regex,
+}
+
+impl Parser for Re {
+    type Mapped = NoMap;
+
+    fn parse_with_position<S: Parser>(
+        &self,
+        src: &str,
+        pos: usize,
+        skip: &Option<S>,
+    ) -> Result<Output<Self::Mapped>, ParseError> {
+        if let Some(mat) = self.pattern.find(src.get(pos..).ok_or(ParseError {
+            rule: "re".to_string(),
+            pos,
+        })?) {
+            if mat.start() == 0 {
+                Ok(Output {
+                    mapped: None,
+                    parsed: vec![mat.as_str().to_string()],
+                    pos: skipper(src, pos + mat.len(), skip),
+                })
+            } else {
+                Err(ParseError {
+                    rule: "re".to_string(),
+                    pos,
+                })
+            }
+        } else {
+            Err(ParseError {
+                rule: "re".to_string(),
+                pos,
+            })
+        }
+    }
+}
