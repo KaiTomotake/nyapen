@@ -187,3 +187,45 @@ impl Parser for Re {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Repeated<P: Parser> {
+    pub(crate) parser: P,
+}
+
+impl<P: Parser> Parser for Repeated<P> {
+    type Mapped = Vec<P::Mapped>;
+
+    fn parse_with_position<S: Parser>(
+        &self,
+        src: &str,
+        mut pos: usize,
+        skip: &Option<S>,
+    ) -> Result<Output<Self::Mapped>, ParseError> {
+        let mut mapped_values = Vec::new();
+        let mut parsed = Vec::new();
+        while let Ok(out) = self.parser.parse_with_position(src, pos, skip) {
+            if let Some(val) = out.mapped {
+                mapped_values.push(val);
+            }
+            parsed.extend(out.parsed);
+            if out.pos == pos {
+                break;
+            }
+            pos = out.pos;
+        }
+        if mapped_values.is_empty() {
+            Ok(Output {
+                mapped: None,
+                parsed,
+                pos: pos,
+            })
+        } else {
+            Ok(Output {
+                mapped: Some(mapped_values),
+                parsed,
+                pos: pos,
+            })
+        }
+    }
+}
