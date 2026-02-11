@@ -1,4 +1,4 @@
-use crate::combinator::{Map, Then, Repeated};
+use crate::combinator::{Map, Opt, Repeated, Then};
 
 pub trait Parser: Sized {
     type Mapped;
@@ -46,10 +46,12 @@ pub trait Parser: Sized {
     }
 
     fn repeated(self) -> Repeated<Self> {
-        Repeated {
-            parser: self
-        }
-    } 
+        Repeated { parser: self }
+    }
+
+    fn opt(self) -> Opt<Self> {
+        Opt { parser: self }
+    }
 }
 
 #[derive(Debug, Clone)]

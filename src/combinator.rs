@@ -218,13 +218,43 @@ impl<P: Parser> Parser for Repeated<P> {
             Ok(Output {
                 mapped: None,
                 parsed,
-                pos: pos,
+                pos,
             })
         } else {
             Ok(Output {
                 mapped: Some(mapped_values),
                 parsed,
-                pos: pos,
+                pos,
+            })
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Opt<P: Parser> {
+    pub(crate) parser: P,
+}
+
+impl<P: Parser> Parser for Opt<P> {
+    type Mapped = P::Mapped;
+
+    fn parse_with_position<S: Parser>(
+        &self,
+        src: &str,
+        pos: usize,
+        skip: &Option<S>,
+    ) -> Result<Output<Self::Mapped>, ParseError> {
+        if let Ok(out) = self.parser.parse_with_position(src, pos, skip) {
+            Ok(Output {
+                mapped: out.mapped,
+                parsed: out.parsed,
+                pos: out.pos,
+            })
+        } else {
+            Ok(Output {
+                mapped: None,
+                parsed: Vec::new(),
+                pos,
             })
         }
     }
