@@ -120,7 +120,7 @@ impl<A: Parser, B: Parser> Parser for Then<A, B> {
         if output_a.mapped.is_none() {
             if output_b.mapped.is_none() {
                 Ok(Output {
-                    mapped: Some((output_a.mapped, output_b.mapped)),
+                    mapped: None,
                     parsed: output_a.parsed.into_iter().chain(output_b.parsed).collect(),
                     pos: output_b.pos,
                 })
@@ -140,7 +140,7 @@ impl<A: Parser, B: Parser> Parser for Then<A, B> {
                 })
             } else {
                 Ok(Output {
-                    mapped: None,
+                    mapped: Some((output_a.mapped, output_b.mapped)),
                     parsed: output_a.parsed.into_iter().chain(output_b.parsed).collect(),
                     pos: output_b.pos,
                 })
