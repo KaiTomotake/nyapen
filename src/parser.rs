@@ -52,6 +52,10 @@ pub trait Parser: Sized {
     fn opt(self) -> Opt<Self> {
         Opt { parser: self }
     }
+
+    fn eoi(self) -> Eoi<Self> {
+        Eoi { parser: self }
+    }
 }
 
 #[derive(Debug, Clone)]

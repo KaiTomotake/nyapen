@@ -259,3 +259,34 @@ impl<P: Parser> Parser for Opt<P> {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Eoi<P: Parser> {
+    pub(crate) parser: P,
+}
+
+impl<P: Parser> Parser for Eoi<P> {
+    type Mapped = P::Mapped;
+
+    fn parse_with_position<S: Parser>(
+        &self,
+        src: &str,
+        pos: usize,
+        skip: &Option<S>,
+    ) -> Result<Output<Self::Mapped>, ParseError> {
+        let out = self.parser.parse_with_position(src, pos, skip)?;
+        let end_pos = skipper(src, out.pos, skip);
+        if end_pos == src.len() {
+            Ok(Output {
+                mapped: out.mapped,
+                parsed: out.parsed,
+                pos: end_pos,
+            })
+        } else {
+            Err(ParseError {
+                rule: "eoi".to_string(),
+                pos: end_pos,
+            })
+        }
+    }
+}
