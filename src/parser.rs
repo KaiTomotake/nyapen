@@ -1,4 +1,4 @@
-use crate::combinator::{Map, Opt, Repeated, Then};
+use crate::combinator::{Map, Opt, Repeated, Then, skipper};
 
 pub trait Parser: Sized {
     type Mapped;
@@ -8,7 +8,7 @@ pub trait Parser: Sized {
         src: &str,
         skip: &Option<S>,
     ) -> Result<Output<Self::Mapped>, ParseError> {
-        self.parse_with_position(src, 0, skip)
+        self.parse_with_position(src, skipper(src, 0, skip), skip)
     }
 
     fn parse_with_map<S: Parser, F: Fn(Option<Self::Mapped>, Vec<String>) -> Self::Mapped>(
@@ -17,7 +17,7 @@ pub trait Parser: Sized {
         skip: &Option<S>,
         f: F,
     ) -> Result<Self::Mapped, ParseError> {
-        self.parse_with_position(src, 0, skip)
+        self.parse_with_position(src, skipper(src, 0, skip), skip)
             .map(|out| f(out.mapped, out.parsed))
     }
 
