@@ -1,4 +1,4 @@
-use crate::combinator::{Map, Opt, Repeated, Then};
+use crate::combinator::{Eoi, Map, Opt, Repeated, Then};
 
 pub trait Parser: Sized {
     type Mapped;
@@ -51,6 +51,10 @@ pub trait Parser: Sized {
 
     fn opt(self) -> Opt<Self> {
         Opt { parser: self }
+    }
+
+    fn eoi(self) -> Eoi<Self> {
+        Eoi { parser: self }
     }
 }
 
