@@ -1,4 +1,4 @@
-use crate::combinator::{Map, Opt, Repeated, Then, skipper};
+use crate::combinator::{Map, Opt, Repeated, Then, Eoi, skipper};
 
 pub trait Parser: Sized {
     type Mapped;
