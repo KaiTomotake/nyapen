@@ -14,7 +14,8 @@ mod tests {
             lit("Hello")
                 .then(lit(",").opt())
                 .then(lit("World"))
-                .parse(" Hello  World", Some(re("\\s+").unwrap()))
+                .skip(re("\\s+").unwrap())
+                .parse(" Hello  World")
                 .unwrap()
                 .parsed,
             &["Hello", "World"]

@@ -1,23 +1,18 @@
-use crate::combinator::{Map, Opt, Repeated, Then, Eoi, skipper};
+use crate::combinator::{Eoi, Map, NoSkip, Opt, Repeated, Skip, Then, skipper};
 
-pub trait Parser: Sized {
+pub trait Parser: Sized + Clone {
     type Mapped;
 
-    fn parse<S: Parser>(
-        &self,
-        src: &str,
-        skip: Option<S>,
-    ) -> Result<Output<Self::Mapped>, ParseError> {
-        self.parse_with_position(src, skipper(src, 0, &skip), &skip)
+    fn parse(&self, src: &str) -> Result<Output<Self::Mapped>, ParseError> {
+        self.parse_with_position::<NoSkip>(src, skipper::<NoSkip>(src, 0, &None), &None)
     }
 
-    fn parse_with_map<S: Parser, F: Fn(Option<Self::Mapped>, Vec<String>) -> Self::Mapped>(
+    fn parse_with_map<F: Fn(Option<Self::Mapped>, Vec<String>) -> Self::Mapped>(
         &self,
         src: &str,
-        skip: Option<S>,
         f: F,
     ) -> Result<Self::Mapped, ParseError> {
-        self.parse_with_position(src, skipper(src, 0, &skip), &skip)
+        self.parse_with_position::<NoSkip>(src, skipper::<NoSkip>(src, 0, &None), &None)
             .map(|out| f(out.mapped, out.parsed))
     }
 
@@ -30,7 +25,8 @@ pub trait Parser: Sized {
 
     fn map<F, R>(self, f: F) -> Map<Self, F, R>
     where
-        F: Fn(Option<Self::Mapped>, Vec<String>) -> R,
+        F: Fn(Option<Self::Mapped>, Vec<String>) -> R + Clone,
+        R: Clone,
     {
         Map {
             parser: self,
@@ -55,6 +51,13 @@ pub trait Parser: Sized {
 
     fn eoi(self) -> Eoi<Self> {
         Eoi { parser: self }
+    }
+
+    fn skip<S: Parser>(self, skipper: S) -> Skip<Self, S> {
+        Skip {
+            parser: self,
+            skipper,
+        }
     }
 }
 
