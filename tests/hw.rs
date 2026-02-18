@@ -21,7 +21,8 @@ fn hw_complete() {
             })
             .repeated()
             .eoi()
-            .parse(" Hello , World Hello Hello", Some(re("\\s+").unwrap()))
+            .skip(re("\\s+").unwrap())
+            .parse(" Hello , World Hello Hello")
             .unwrap()
             .mapped,
         Some(vec![

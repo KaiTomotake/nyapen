@@ -69,7 +69,8 @@ impl Parser for Lit {
 pub struct Map<P, F, R>
 where
     P: Parser,
-    F: Fn(Option<<P as Parser>::Mapped>, Vec<String>) -> R,
+    F: Fn(Option<<P as Parser>::Mapped>, Vec<String>) -> R + Clone,
+    R: Clone,
 {
     pub(crate) parser: P,
     pub(crate) func: F,
@@ -78,7 +79,8 @@ where
 impl<P, F, R> Parser for Map<P, F, R>
 where
     P: Parser,
-    F: Fn(Option<<P as Parser>::Mapped>, Vec<String>) -> R,
+    F: Fn(Option<<P as Parser>::Mapped>, Vec<String>) -> R + Clone,
+    R: Clone,
 {
     type Mapped = R;
 
@@ -288,5 +290,29 @@ impl<P: Parser> Parser for Eoi<P> {
                 pos: end_pos,
             })
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Skip<P: Parser, Sk: Parser> {
+    pub(crate) parser: P,
+    pub(crate) skipper: Sk,
+}
+
+impl<P: Parser, Sk: Parser> Parser for Skip<P, Sk> {
+    type Mapped = P::Mapped;
+
+    fn parse_with_position<S: Parser>(
+        &self,
+        src: &str,
+        pos: usize,
+        _: &Option<S>,
+    ) -> Result<Output<Self::Mapped>, ParseError> {
+        let opt = Some(self.skipper.clone());
+        self.parser.parse_with_position(
+            src,
+            skipper(src, pos, &opt),
+            &opt,
+        )
     }
 }
